@@ -1,4 +1,4 @@
-/// Copyright (c) 2023 Kodeco Inc.
+/// Copyright (c) 2026 Kodeco Inc.
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
@@ -33,76 +33,36 @@
 import SwiftUI
 import FoundationModels
 
-enum AvailableModels: String, CaseIterable {
-  case deviceModel = "On-Device Model"
-  case permissiveModel = "Permissive Guardrails"
-  case privateCloudCompute = "Private Cloud Compute"
-
-  var model: any LanguageModel {
-    switch self {
-    case .deviceModel:
-      SystemLanguageModel()
-    case .permissiveModel:
-      SystemLanguageModel(
-        useCase: .general,
-        guardrails: .permissiveContentTransformations
-      )
-    case .privateCloudCompute:
-      PrivateCloudComputeLanguageModel()
-    }
-  }
-}
-
-struct ContentView: View {
-  @State private var selectedModel: AvailableModels = .deviceModel
-
+struct QuotaUsageView: View {
+  var model: PrivateCloudComputeLanguageModel
+  
   var body: some View {
-    VStack {
-      Picker("Model", selection: $selectedModel) {
-        ForEach(AvailableModels.allCases, id: \.self) { modelOption in
-          Text(modelOption.rawValue).tag(modelOption)
-        }
-      }
-
-      switch selectedModel {
-      case .deviceModel:
-        modelContent(SystemLanguageModel())
-      case .permissiveModel:
-        modelContent(
-          SystemLanguageModel(
-            useCase: .general,
-            guardrails: .permissiveContentTransformations
-          )
-        )
-      case .privateCloudCompute:
-        modelContent(PrivateCloudComputeLanguageModel())
-      }
+    // 1
+    switch model.quotaUsage.status {
+    // 2
+    case .limitReached:
+      Text("You have used your available quota.")
+        .foregroundStyle(.red)
+    // 3
+    case .belowLimit(let info) where info.isApproachingLimit:
+      Text("You are nearing your available quota.")
+        .foregroundStyle(.orange)
+    // 4
+    case .belowLimit(_):
+      Text("Below quota.")
+        .foregroundStyle(.green)
+    // 5
+    @unknown default:
+      EmptyView()
     }
-  }
-
-  @ViewBuilder
-  private func modelContent(_ model: SystemLanguageModel) -> some View {
-    switch model.availability {
-    case .available:
-      ChatView(model: model)
-        .id(selectedModel)
-    case .unavailable(let reason):
-      ModelUnavailableView(reason: reason)
-    }
-  }
-
-  @ViewBuilder
-  private func modelContent(_ model: PrivateCloudComputeLanguageModel) -> some View {
-    switch model.availability {
-    case .available:
-      ChatView(model: model)
-        .id(selectedModel)
-    case .unavailable:
-      Text("Private Cloud Compute is unavailable.")
+    // 5
+    if let resetHasDate = model.quotaUsage.resetDate {
+      Text("Usage resets at:")
+      Text(resetHasDate, format: .dateTime)
     }
   }
 }
 
 #Preview {
-  ContentView()
+  QuotaUsageView(model: PrivateCloudComputeLanguageModel())
 }

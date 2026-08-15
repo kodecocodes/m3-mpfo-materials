@@ -33,6 +33,10 @@
 import SwiftUI
 import FoundationModels
 
-#Preview {
-  ChatView(model: .default)
+#Preview("System Language Model") {
+  ChatView(model: SystemLanguageModel.default)
+}
+
+#Preview("Private Language Computer Model") {
+  ChatView(model: PrivateCloudComputeLanguageModel())
 }

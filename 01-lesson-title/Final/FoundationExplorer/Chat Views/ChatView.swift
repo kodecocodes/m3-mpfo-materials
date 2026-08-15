@@ -34,14 +34,14 @@ import SwiftUI
 import FoundationModels
 
 struct ChatView: View {
-  let model: SystemLanguageModel
+  let model: any LanguageModel
   @State private var promptText = ""
   @State private var messages: [Message] = []
   @FocusState private var isTextFieldFocused: Bool
   @State private var session: LanguageModelSession
   @State private var confirmClear: Bool = false
-  private var contextWindow: Int {
-    model.contextSize
+  private var contextWindow: Int? {
+    (model as? SystemLanguageModel)?.contextSize
   }
   @State private var contextWindowSize: Int?
   @State private var promptSettings =
@@ -53,7 +53,7 @@ struct ChatView: View {
   @State private var showSettings = false
   @State private var isCompactingContext = false
 
-  init(model: SystemLanguageModel) {
+  init(model: any LanguageModel) {
     self.model = model
     _session = State(initialValue: LanguageModelSession(model: model))
   }
@@ -128,12 +128,17 @@ struct ChatView: View {
           sendAction: sendPrompt
         )
         .disabled(session.isResponding)
-        if let tokenCount = contextWindowSize {
-          Text("Context Window: \(tokenCount)/\(contextWindow) tokens.")
-            .font(.footnote)
-        } else {
-          Text("Context Window: \(contextWindow) tokens.")
-            .font(.footnote)
+        if let contextSize = contextWindow {
+          if let tokenCount = contextWindowSize {
+            Text("Context Window: \(tokenCount)/\(contextSize) tokens.")
+              .font(.footnote)
+          } else {
+            Text("Context Window: \(contextSize) tokens.")
+              .font(.footnote)
+          }
+        }
+        if let pccModel = model as? PrivateCloudComputeLanguageModel {
+          QuotaUsageView(model: pccModel)
         }
       }
       .overlay {
@@ -179,16 +184,22 @@ struct ChatView: View {
   }
 
   private func updatedContextWindowUsed() async {
-    guard #available(iOS 26.4, *) else {
+    guard #available(iOS 26.4, *),
+      let systemModel = model as? SystemLanguageModel
+    else {
       contextWindowSize = nil
       return
     }
-    contextWindowSize = try? await model.tokenCount(for: session.transcript)
+    contextWindowSize = try? await systemModel.tokenCount(for: session.transcript)
   }
 
   private func tokenCount(for text: String) async -> Int? {
-    guard #available(iOS 26.4, *) else { return nil }
-    return try? await model.tokenCount(for: Prompt(text))
+    guard #available(iOS 26.4, *),
+      let systemModel = model as? SystemLanguageModel
+    else {
+      return nil
+    }
+    return try? await systemModel.tokenCount(for: Prompt(text))
   }
 
   @MainActor
