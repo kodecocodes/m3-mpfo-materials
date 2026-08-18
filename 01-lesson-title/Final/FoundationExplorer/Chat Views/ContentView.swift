@@ -32,11 +32,14 @@
 
 import SwiftUI
 import FoundationModels
+import ClaudeForFoundationModels
+import KeychainSwift
 
 enum AvailableModels: String, CaseIterable {
   case deviceModel = "On-Device Model"
   case permissiveModel = "Permissive Guardrails"
   case privateCloudCompute = "Private Cloud Compute"
+  case claudeApiModel = "Claude via API"
 
   var model: any LanguageModel {
     switch self {
@@ -49,6 +52,11 @@ enum AvailableModels: String, CaseIterable {
       )
     case .privateCloudCompute:
       PrivateCloudComputeLanguageModel()
+    case .claudeApiModel:
+      let key = "claude-api-key"
+      let keychainService = KeychainSwift()
+      let apiKey = keychainService.get(key) ?? ""
+      return ClaudeLanguageModel(name: .sonnet5, auth: .apiKey(apiKey))
     }
   }
 }
@@ -76,6 +84,15 @@ struct ContentView: View {
         )
       case .privateCloudCompute:
         modelContent(PrivateCloudComputeLanguageModel())
+      case .claudeApiModel:
+        let key = "claude-api-key"
+        let keychainService = KeychainSwift()
+        let apiKey = keychainService.get(key) ?? ""
+        modelContent(
+          ClaudeLanguageModel(
+            name: .sonnet5,
+            auth: .apiKey(apiKey)
+        )
       }
     }
   }
@@ -99,6 +116,17 @@ struct ContentView: View {
         .id(selectedModel)
     case .unavailable:
       Text("Private Cloud Compute is unavailable.")
+    }
+  }
+  
+  @ViewBuilder
+  private func modelContent(_ model: ClaudeLanguageModel) -> some View {
+    switch model.availability {
+    case .available:
+      ChatView(model: model)
+        .id(selectedModel)
+    case .unavailable:
+      Text("Claude Model is unavailable.")
     }
   }
 }
