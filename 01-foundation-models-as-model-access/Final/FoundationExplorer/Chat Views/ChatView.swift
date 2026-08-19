@@ -34,13 +34,13 @@ import SwiftUI
 import FoundationModels
 
 struct ChatView: View {
+  let model: any LanguageModel
   @State private var promptText = ""
   @State private var messages: [Message] = []
   @FocusState private var isTextFieldFocused: Bool
-  @State private var session = LanguageModelSession()
+  @State private var session: LanguageModelSession
   @State private var confirmClear: Bool = false
-  private var contextWindow = SystemLanguageModel.default.contextSize
-  @State private var contextWindowSize: Int?
+  @State private var contextWindow: Int?
   @State private var promptSettings =
   PromptSettings(
     instructions: nil,
@@ -49,6 +49,11 @@ struct ChatView: View {
   )
   @State private var showSettings = false
   @State private var isCompactingContext = false
+
+  init(model: any LanguageModel) {
+    self.model = model
+    _session = State(initialValue: LanguageModelSession(model: model))
+  }
 
   @ToolbarContentBuilder private var appToolbar: some ToolbarContent {
     ToolbarSpacer(.flexible, placement: .bottomBar)
@@ -120,12 +125,12 @@ struct ChatView: View {
           sendAction: sendPrompt
         )
         .disabled(session.isResponding)
-        if let tokenCount = contextWindowSize {
-          Text("Context Window: \(tokenCount)/\(contextWindow) tokens.")
+        if let contextMax = contextWindow {
+          Text("Context Window: \(session.usage.totalTokenCount)/\(contextMax) tokens.")
             .font(.footnote)
-        } else {
-          Text("Context Window: \(contextWindow) tokens.")
-            .font(.footnote)
+        }
+        if let pccModel = model as? PrivateCloudComputeLanguageModel {
+          QuotaUsageView(model: pccModel)
         }
       }
       .overlay {
@@ -145,11 +150,11 @@ struct ChatView: View {
       .sheet(isPresented: $showSettings) {
         ConfigurationView(settings: $promptSettings)
       }
+      .task {
+        await contextWindow = getContextWindow()
+      }
       .onChange(of: promptSettings.instructions) {
-        Task {
-          resetChatHistory()
-          await updatedContextWindowUsed()
-        }
+        resetChatHistory()
       }
     }
   }
@@ -158,26 +163,33 @@ struct ChatView: View {
     messages = []
 
     if let instructions = promptSettings.instructions {
-      session = LanguageModelSession(instructions: instructions)
+      session = LanguageModelSession(
+        model: model,
+        instructions: instructions
+      )
     } else {
-      session = LanguageModelSession()
+      session = LanguageModelSession(model: model)
     }
-    Task {
-      await updatedContextWindowUsed()
-    }
-  }
-
-  private func updatedContextWindowUsed() async {
-    guard #available(iOS 26.4, *) else {
-      contextWindowSize = nil
-      return
-    }
-    contextWindowSize = try? await SystemLanguageModel.default.tokenCount(for: session.transcript)
   }
 
   private func tokenCount(for text: String) async -> Int? {
-    guard #available(iOS 26.4, *) else { return nil }
-    return try? await SystemLanguageModel.default.tokenCount(for: Prompt(text))
+    guard #available(iOS 26.4, *),
+      let systemModel = model as? SystemLanguageModel
+    else {
+      return nil
+    }
+    return try? await systemModel.tokenCount(for: Prompt(text))
+  }
+  
+  private func getContextWindow() async -> Int? {
+    switch model {
+    case let systemModel as SystemLanguageModel:
+      return systemModel.contextSize
+    case let pccModel as PrivateCloudComputeLanguageModel:
+      return try? await pccModel.contextSize
+    default:
+      return nil
+    }
   }
 
   @MainActor
@@ -194,7 +206,7 @@ struct ChatView: View {
         }
         return false
       }
-    
+
     let textToSummarize = entriesToKeep.map {
       $0.description
     }
@@ -215,7 +227,7 @@ struct ChatView: View {
       Do not skip any requests. Include earlier and later ones.
       """
     
-    let summarySession = LanguageModelSession(instructions: summaryInstructions)
+    let summarySession = LanguageModelSession(model: model, instructions: summaryInstructions)
     let summarizedText = try? await summarySession.respond(to: textToSummarize)
     
     messages = []
@@ -225,7 +237,6 @@ struct ChatView: View {
     } else {
       trimSession(entriesToKeep)
     }
-    await updatedContextWindowUsed()
   }
 
   func useSummary(_ summary: String) {
@@ -259,7 +270,7 @@ struct ChatView: View {
     )
 
     let newTranscript = Transcript(entries: entries)
-    session = LanguageModelSession(transcript: newTranscript)
+    session = LanguageModelSession(model: model, transcript: newTranscript)
     addMessage(summary, type: .summary)
   }
 
@@ -284,7 +295,7 @@ struct ChatView: View {
     let lastEntries = Array(entries.dropFirst(entries.count / 3))
     summaryEntries.append(contentsOf: lastEntries)
     let newTranscript = Transcript(entries: summaryEntries)
-    session = LanguageModelSession(transcript: newTranscript)
+    session = LanguageModelSession(model: model, transcript: newTranscript)
     for entry in lastEntries {
       addMessage(entry.description, type: .summary)
     }
@@ -294,7 +305,7 @@ struct ChatView: View {
 extension ChatView {
   func sendPrompt() async {
     guard !promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-
+    
     addMessage(promptText, type: .prompt)
     let samplingOptions = promptSettings.sampling
     var sampling: GenerationOptions.SamplingMode?
@@ -344,10 +355,15 @@ extension ChatView {
       )
     } catch LanguageModelError.contextSizeExceeded {
       await summarizeChat()
+    } catch PrivateCloudComputeLanguageModel.Error.quotaLimitReached(let error)  {
+      var message = "You have exceeded your available quota."
+      if let resetDate = error.resetDate {
+        message += " Your quota will reset on \(resetDate.formatted(.dateTime))"
+      }
+      addMessage(message, type: .error)
     } catch {
       addMessage(error.localizedDescription, type: .error)
     }
-    await updatedContextWindowUsed()
   }
 
   private func addMessage(_ message: String, type: MessageType, animate: Bool = true) {

@@ -37,20 +37,6 @@ enum AvailableModels: String, CaseIterable {
   case deviceModel = "On-Device Model"
   case permissiveModel = "Permissive Guardrails"
   case privateCloudCompute = "Private Cloud Compute"
-
-  var model: any LanguageModel {
-    switch self {
-    case .deviceModel:
-      SystemLanguageModel()
-    case .permissiveModel:
-      SystemLanguageModel(
-        useCase: .general,
-        guardrails: .permissiveContentTransformations
-      )
-    case .privateCloudCompute:
-      PrivateCloudComputeLanguageModel()
-    }
-  }
 }
 
 struct ContentView: View {

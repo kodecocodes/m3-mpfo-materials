@@ -34,15 +34,12 @@ import SwiftUI
 import FoundationModels
 
 struct ChatView: View {
-  let model: any LanguageModel
   @State private var promptText = ""
   @State private var messages: [Message] = []
   @FocusState private var isTextFieldFocused: Bool
-  @State private var session: LanguageModelSession
+  @State private var session = LanguageModelSession()
   @State private var confirmClear: Bool = false
-  private var contextWindow: Int? {
-    (model as? SystemLanguageModel)?.contextSize
-  }
+  private var contextWindow = SystemLanguageModel.default.contextSize
   @State private var contextWindowSize: Int?
   @State private var promptSettings =
   PromptSettings(
@@ -52,11 +49,6 @@ struct ChatView: View {
   )
   @State private var showSettings = false
   @State private var isCompactingContext = false
-
-  init(model: any LanguageModel) {
-    self.model = model
-    _session = State(initialValue: LanguageModelSession(model: model))
-  }
 
   @ToolbarContentBuilder private var appToolbar: some ToolbarContent {
     ToolbarSpacer(.flexible, placement: .bottomBar)
@@ -128,17 +120,12 @@ struct ChatView: View {
           sendAction: sendPrompt
         )
         .disabled(session.isResponding)
-        if let contextSize = contextWindow {
-          if let tokenCount = contextWindowSize {
-            Text("Context Window: \(tokenCount)/\(contextSize) tokens.")
-              .font(.footnote)
-          } else {
-            Text("Context Window: \(contextSize) tokens.")
-              .font(.footnote)
-          }
-        }
-        if let pccModel = model as? PrivateCloudComputeLanguageModel {
-          QuotaUsageView(model: pccModel)
+        if let tokenCount = contextWindowSize {
+          Text("Context Window: \(tokenCount)/\(contextWindow) tokens.")
+            .font(.footnote)
+        } else {
+          Text("Context Window: \(contextWindow) tokens.")
+            .font(.footnote)
         }
       }
       .overlay {
@@ -159,10 +146,7 @@ struct ChatView: View {
         ConfigurationView(settings: $promptSettings)
       }
       .onChange(of: promptSettings.instructions) {
-        Task {
-          resetChatHistory()
-          await updatedContextWindowUsed()
-        }
+        resetChatHistory()
       }
     }
   }
@@ -171,12 +155,9 @@ struct ChatView: View {
     messages = []
 
     if let instructions = promptSettings.instructions {
-      session = LanguageModelSession(
-        model: model,
-        instructions: instructions
-      )
+      session = LanguageModelSession(instructions: instructions)
     } else {
-      session = LanguageModelSession(model: model)
+      session = LanguageModelSession()
     }
     Task {
       await updatedContextWindowUsed()
@@ -184,22 +165,16 @@ struct ChatView: View {
   }
 
   private func updatedContextWindowUsed() async {
-    guard #available(iOS 26.4, *),
-      let systemModel = model as? SystemLanguageModel
-    else {
+    guard #available(iOS 26.4, *) else {
       contextWindowSize = nil
       return
     }
-    contextWindowSize = try? await systemModel.tokenCount(for: session.transcript)
+    contextWindowSize = try? await SystemLanguageModel.default.tokenCount(for: session.transcript)
   }
 
   private func tokenCount(for text: String) async -> Int? {
-    guard #available(iOS 26.4, *),
-      let systemModel = model as? SystemLanguageModel
-    else {
-      return nil
-    }
-    return try? await systemModel.tokenCount(for: Prompt(text))
+    guard #available(iOS 26.4, *) else { return nil }
+    return try? await SystemLanguageModel.default.tokenCount(for: Prompt(text))
   }
 
   @MainActor
@@ -216,7 +191,7 @@ struct ChatView: View {
         }
         return false
       }
-
+    
     let textToSummarize = entriesToKeep.map {
       $0.description
     }
@@ -237,7 +212,7 @@ struct ChatView: View {
       Do not skip any requests. Include earlier and later ones.
       """
     
-    let summarySession = LanguageModelSession(model: model, instructions: summaryInstructions)
+    let summarySession = LanguageModelSession(instructions: summaryInstructions)
     let summarizedText = try? await summarySession.respond(to: textToSummarize)
     
     messages = []
@@ -281,7 +256,7 @@ struct ChatView: View {
     )
 
     let newTranscript = Transcript(entries: entries)
-    session = LanguageModelSession(model: model, transcript: newTranscript)
+    session = LanguageModelSession(transcript: newTranscript)
     addMessage(summary, type: .summary)
   }
 
@@ -306,7 +281,7 @@ struct ChatView: View {
     let lastEntries = Array(entries.dropFirst(entries.count / 3))
     summaryEntries.append(contentsOf: lastEntries)
     let newTranscript = Transcript(entries: summaryEntries)
-    session = LanguageModelSession(model: model, transcript: newTranscript)
+    session = LanguageModelSession(transcript: newTranscript)
     for entry in lastEntries {
       addMessage(entry.description, type: .summary)
     }
