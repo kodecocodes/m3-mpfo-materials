@@ -32,7 +32,6 @@
 
 import SwiftUI
 import FoundationModels
-import ClaudeAPI
 
 struct ChatView: View {
   let model: any LanguageModel
@@ -367,8 +366,6 @@ extension ChatView {
       )
     } catch LanguageModelError.contextSizeExceeded {
       await summarizeChat()
-    } catch ClaudeError.missingCredential {
-      addMessage("The supplied Claude API Key is invalid.", type: .error)
     } catch {
       addMessage(error.localizedDescription, type: .error)
     }

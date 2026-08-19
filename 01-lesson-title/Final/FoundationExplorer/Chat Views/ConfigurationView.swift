@@ -31,7 +31,6 @@
 /// THE SOFTWARE.
 
 import SwiftUI
-import KeychainSwift
 
 struct ConfigurationView: View {
   @Environment(\.dismiss)
@@ -82,23 +81,6 @@ struct ConfigurationView: View {
         } else {
           topError = "Please enter a valid integer"
         }
-      }
-    )
-  }
-  
-  private var apiKey: Binding<String> {
-    // 1
-    let key = "claude-api-key"
-    let keychain = KeychainSwift()
-
-    return Binding(
-      get: {
-        // 2
-        return keychain.get(key) ?? ""
-      },
-      set: { newValue in
-        // 3
-        keychain.set(newValue, forKey: key)
       }
     )
   }
@@ -182,12 +164,6 @@ struct ConfigurationView: View {
             }
           }
           .animation(.default, value: settings.sampling.type)
-        }
-        Section("Claude Settings") {
-          HStack {
-            TextField("Enter API Key", text: apiKey)
-              .textFieldStyle(.roundedBorder)
-          }
         }
       }
       .toolbar {

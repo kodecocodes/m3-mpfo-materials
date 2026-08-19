@@ -11,8 +11,6 @@
 		18D775C722AD944400AE281E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C622AD944400AE281E /* Assets.xcassets */; };
 		18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C922AD944400AE281E /* Preview Assets.xcassets */; };
 		18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18D775DA22AD963800AE281E /* LaunchScreen.storyboard */; };
-		A942A6F3303128D20009E1DA /* ClaudeForFoundationModels in Frameworks */ = {isa = PBXBuildFile; productRef = A942A6F2303128D20009E1DA /* ClaudeForFoundationModels */; };
-		A942A6F6303134DF0009E1DA /* KeychainSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A942A6F5303134DF0009E1DA /* KeychainSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,8 +33,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A942A6F6303134DF0009E1DA /* KeychainSwift in Frameworks */,
-				A942A6F3303128D20009E1DA /* ClaudeForFoundationModels in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,8 +131,6 @@
 			);
 			mainGroup = 18D775B422AD944300AE281E;
 			packageReferences = (
-				A942A6F1303128D20009E1DA /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */,
-				A942A6F4303134DF0009E1DA /* XCRemoteSwiftPackageReference "keychain-swift" */,
 			);
 			productRefGroup = 18D775BE22AD944300AE281E /* Products */;
 			projectDirPath = "";
@@ -391,38 +385,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		A942A6F1303128D20009E1DA /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/anthropics/ClaudeForFoundationModels.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.4;
-			};
-		};
-		A942A6F4303134DF0009E1DA /* XCRemoteSwiftPackageReference "keychain-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/evgenyneu/keychain-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 24.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A942A6F2303128D20009E1DA /* ClaudeForFoundationModels */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A942A6F1303128D20009E1DA /* XCRemoteSwiftPackageReference "ClaudeForFoundationModels" */;
-			productName = ClaudeForFoundationModels;
-		};
-		A942A6F5303134DF0009E1DA /* KeychainSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A942A6F4303134DF0009E1DA /* XCRemoteSwiftPackageReference "keychain-swift" */;
-			productName = KeychainSwift;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 18D775B522AD944300AE281E /* Project object */;
 }
