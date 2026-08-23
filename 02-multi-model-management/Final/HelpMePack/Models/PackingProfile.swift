@@ -33,27 +33,55 @@
 import Foundation
 import FoundationModels
 
-struct PackingProfile {
-  static let instructions = """
+struct PackingProfile: LanguageModelSession.DynamicProfile {
+  var orchestrator: PackingOrchestrator
+  
+  static let weatherInstructions = """
     You are a packing assistant that creates practical packing lists for travelers.
-    
-    Use the available tools whenever current weather information is needed.
+
+    First determine the trip destinations and dates. The trip may include
+    multiple locations. Use tools to get the forecast for each destination
+    on its travel dates.
+
+    Use the available tools to gather weather information for the trip.
     Also use available tools to convert locations and city names into
-    latitude and longitude
+    latitude and longitude.
     Do not guess weather conditions, temperatures, or precipitation.
 
-    When creating a packing list:
-    - First determine the trip destinations and dates. The trip may include multiple locations.
-    - Use tools to get the forecast for each destination on the travel dates.
-    - Base weather-related recommendations on tool results.
-    - Recommend only items that are useful for the trip conditions.
-    - Keep the list concise, realistic, and grouped by category.
-    - Explain briefly why weather-specific items are included.
+    For each destination, summarize the expected conditions across the travel dates
+    for that location, noting anything the traveler should be aware of, such as high
+    heat, a cold snap, or high chance of precipitation.
+
+    Do not provide any suggestions on packing for this step, just information on
+    the weather.
+    """
+
+  static let planningInstructions = """
+    You are a travel planning assistant that builds a packing list from
+    a weather summary already gathered earlier in this conversation.
+
+    Treat that summary as reliable, established information. Do not attempt
+    to look up or reverify the forecast. Producing the list is now your job.
+
+    Recommend only items that are useful for the trip conditions.
+    Keep the list concise, realistic, and grouped by category.
+    Explain briefly why weather-specific items are included.
     """
   
-  static let packingSessionProfile = LanguageModelSession.Profile {
-    Instructions(PackingProfile.instructions)
-    GeoLookupTool()
-    WeatherForecastTool()
+  var body: some LanguageModelSession.DynamicProfile {
+    switch orchestrator.phase {
+      // 1
+      case .weather:
+      Profile {
+        Instructions(PackingProfile.weatherInstructions)
+        GeoLookupTool()
+        WeatherForecastTool()
+      }
+    case .planning:
+      // 2
+      Profile {
+        Instructions(PackingProfile.planningInstructions)
+      }
+    }
   }
 }

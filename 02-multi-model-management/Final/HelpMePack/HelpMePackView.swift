@@ -35,6 +35,7 @@ import FoundationModels
 
 struct HelpMePackView: View {
   @State var information = PackingInformation()
+  @State var orchestrator = PackingOrchestrator()
   @State var showTranscript = false
   @State var isLoading = false
   @State var session = LanguageModelSession()
@@ -134,8 +135,9 @@ struct HelpMePackView: View {
   }
 
   func createNewSession() {
+    orchestrator = PackingOrchestrator()
     session = LanguageModelSession(
-      profile: PackingProfile.packingSessionProfile
+      profile: PackingProfile(orchestrator: orchestrator)
     )
   }
 
@@ -146,51 +148,98 @@ struct HelpMePackView: View {
       }
       .joined(separator: "\n")
 
-    let prompt = """
-    Create a weather-aware packing list for this trip.
-
-    Itinerary:
-    \(destinations)
-
-    1. Retrieve the weather forecast for each destination for the travel dates.
-    2. Use the forecast to decide what clothing and accessories would be needed.
-
-    Do not assume weather conditions from general knowledge about any location.
+    let weatherPrompt = """
+      Built a weather summary for this trip.
+      
+      Itinerary:
+      \(destinations)
+      
+      1. Retrieve the weather forecast for each destination for the travel dates.
+      2. Determine what about the forecast would most impact a visitor of the city only on the dates for that location.
+      3. Summarize that information for each location for the indicated dates for the user.
+      
+      Do not assume weather conditions from general knowledge about any location.
     """
+    
+    let planningPrompt = """
+      Create a weather-aware packing list for this trip.
+
+      Itinerary:
+      \(destinations)
+
+      1. A weather summary for each destination has already been established
+         earlier in this conversation. Use that summary directly do not
+         guess at weather conditions.
+      2. Use the summary to decide what clothing and accessories would be
+         needed for each destination.
+      """
 
     Task {
       isLoading = true
       defer {
         isLoading = false
       }
-      let stream = session.streamResponse(to: prompt)
-      do {
-        for try await partialResponse in stream {
-          information.packingRecommendation = partialResponse.content
-        }
-      } catch let error as LanguageModelSession.ToolCallError {
-        var errorString: String
-        errorString = "Error occurred in \(error.tool.name)\n"
-        if let underlyingError = error.underlyingError as? WeatherServiceError {
-          if case let .serverError(_, message) = underlyingError {
-            if message?.contains("Data Unavailable For Requested Point") ?? false {
-              errorString += """
-              The requested location is not covered by the National Weather Service.
-              
-              Please Check Your Location and Try Again.
-              """
-            } else {
-              errorString += underlyingError.errorDescription ?? error.localizedDescription
-            }
-          } else {
-            errorString += underlyingError.errorDescription ?? error.localizedDescription
-          }
-        }
-        information.packingRecommendation = errorString
-      } catch {
-        information.packingRecommendation = "Error: \(error.localizedDescription)"
+      // 1
+      let weatherFound = await runPrompt(weatherPrompt) { text in
+        information.packingRecommendation = text
+      }
+      // 2
+      if !weatherFound {
+        return
+      }
+      // 3
+      let weatherText = information.packingRecommendation
+      orchestrator.phase = .planning
+      // 4
+      _ = await runPrompt(planningPrompt) { text in
+        information.packingRecommendation = weatherText + "\n\n" + text
       }
     }
+  }
+  
+  // 1
+  private func runPrompt(
+    _ prompt: String,
+    onUpdate: @escaping (String) -> Void
+  ) async -> Bool {
+    // 2
+    let stream = session.streamResponse(to: prompt)
+    do {
+      // 3
+      for try await partialResponse in stream {
+        onUpdate(partialResponse.content)
+      }
+    // 4
+    } catch let error as LanguageModelSession.ToolCallError {
+      onUpdate(toolErrorDescription(for: error))
+      return false
+    // 5
+    } catch {
+      onUpdate("Error: \(error.localizedDescription)")
+      return false
+    }
+    // 6
+    return true
+  }
+  
+  private func toolErrorDescription(for error: LanguageModelSession.ToolCallError) -> String {
+    var errorString = "Error occurred in \(error.tool.name)\n"
+    if let underlyingError = error.underlyingError as? WeatherServiceError {
+      if case let .serverError(_, message) = underlyingError {
+        if message?.contains("Data Unavailable For Requested Point") ?? false {
+          errorString += """
+          The requested location is not covered by the National Weather Service.
+
+          Please Check Your Location and Try Again.
+          """
+        } else {
+          errorString += underlyingError.errorDescription ?? error.localizedDescription
+        }
+      } else {
+        errorString += underlyingError.errorDescription ?? error.localizedDescription
+      }
+    }
+    return errorString
   }
   
   private var forecastWindow: ClosedRange<Date> {

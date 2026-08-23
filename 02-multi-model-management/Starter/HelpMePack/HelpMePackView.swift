@@ -183,28 +183,31 @@ struct HelpMePackView: View {
           information.packingRecommendation = partialResponse.content
         }
       } catch let error as LanguageModelSession.ToolCallError {
-        var errorString: String
-        errorString = "Error occurred in \(error.tool.name)\n"
-        if let underlyingError = error.underlyingError as? WeatherServiceError {
-          if case let .serverError(_, message) = underlyingError {
-            if message?.contains("Data Unavailable For Requested Point") ?? false {
-              errorString += """
-              The requested location is not covered by the National Weather Service.
-              
-              Please Check Your Location and Try Again.
-              """
-            } else {
-              errorString += underlyingError.errorDescription ?? error.localizedDescription
-            }
-          } else {
-            errorString += underlyingError.errorDescription ?? error.localizedDescription
-          }
-        }
-        information.packingRecommendation = errorString
+        information.packingRecommendation = toolErrorDescription(for: error)
       } catch {
         information.packingRecommendation = "Error: \(error.localizedDescription)"
       }
     }
+  }
+  
+  private func toolErrorDescription(for error: LanguageModelSession.ToolCallError) -> String {
+    var errorString = "Error occurred in \(error.tool.name)\n"
+    if let underlyingError = error.underlyingError as? WeatherServiceError {
+      if case let .serverError(_, message) = underlyingError {
+        if message?.contains("Data Unavailable For Requested Point") ?? false {
+          errorString += """
+          The requested location is not covered by the National Weather Service.
+
+          Please Check Your Location and Try Again.
+          """
+        } else {
+          errorString += underlyingError.errorDescription ?? error.localizedDescription
+        }
+      } else {
+        errorString += underlyingError.errorDescription ?? error.localizedDescription
+      }
+    }
+    return errorString
   }
   
   private var forecastWindow: ClosedRange<Date> {
