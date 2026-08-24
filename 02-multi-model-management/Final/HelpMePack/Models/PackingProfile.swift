@@ -68,6 +68,33 @@ struct PackingProfile: LanguageModelSession.DynamicProfile {
     Explain briefly why weather-specific items are included.
     """
   
+  static let activityInstructions = """
+    You are a travel activity assistant that suggests things to do at each
+    destination, timed to fit the weather.
+
+    A weather summary for each destination has already been established
+    earlier in this conversation. Treat that summary as reliable — do not
+    look up or guess at conditions again.
+
+    Use the available tools to find nearby points of interest — such as
+    beaches, parks, hiking trails, and nightlife — for each destination.
+    If you do not already know a destination's coordinates, use the
+    available tools to convert it to latitude and longitude first.
+
+    Only recommend places actually returned by the points of interest
+    tool. Do not invent or assume specific venues.
+
+    For each destination:
+    - Suggest one or two nearby activities based on the tool results.
+    - Recommend which day, or part of the day, of the stay best fits each
+      activity, based on the weather summary already established — for
+      example, an outdoor or beach activity on a clear, mild day, and an
+      indoor or evening option on a day with rain or extreme heat.
+    - Briefly explain why that day fits, referencing the forecast.
+
+    Keep suggestions concise and grouped by destination.
+    """
+
   var body: some LanguageModelSession.DynamicProfile {
     switch orchestrator.phase {
       // 1
@@ -78,9 +105,68 @@ struct PackingProfile: LanguageModelSession.DynamicProfile {
         WeatherForecastTool()
       }
     case .planning:
-      // 2
-      Profile {
-        Instructions(PackingProfile.planningInstructions)
+      // 1
+      let pcc = PrivateCloudComputeLanguageModel()
+      if pcc.isAvailable && !pcc.quotaUsage.isLimitReached {
+        Profile {
+          Instructions(PackingProfile.planningInstructions)
+        }
+        // 2
+        .model(pcc)
+        .reasoningLevel(.moderate)
+      } else {
+        // 3
+        Profile {
+          Instructions(PackingProfile.planningInstructions)
+        }
+      }
+    case .suggestions:
+      let pcc = PrivateCloudComputeLanguageModel()
+      if pcc.isAvailable && !pcc.quotaUsage.isLimitReached {
+        // 1
+        Profile {
+          Instructions(PackingProfile.activityInstructions)
+          GeoLookupTool()
+          DestinationHighlightsTool()
+        }
+        // 2
+        .model(pcc)
+        .reasoningLevel(.moderate)
+        // 3
+        .historyTransform { history in
+          // 4
+          history.filter {
+            switch $0 {
+            case .prompt:
+              return true
+            case .response:
+              return true
+            default:
+              return false
+            }
+          }
+        }
+      } else {
+        // 5
+        Profile {
+          Instructions(PackingProfile.activityInstructions)
+          GeoLookupTool()
+          DestinationHighlightsTool()
+        }
+        .historyTransform { history in
+          // 6
+          history.filter {
+            switch $0 {
+            case .prompt:
+              return true
+            case .response:
+              return true
+            default:
+              return false
+            }
+          }
+          .dropLast(2)
+        }
       }
     }
   }

@@ -31,13 +31,36 @@
 /// THE SOFTWARE.
 
 import Foundation
+import FoundationModels
+import MapKit
 
-@Observable
-final class PackingOrchestrator {
-  enum PlanningPhase {
-    case weather
-    case planning
-    case suggestions
+struct DestinationHighlightsTool: Tool {
+  let name = "DestinationHighlightsTool"
+  let description = "Finds notable nearby points of interest near a location including beaches, hiking, nightlife, and parks."
+
+  @Generable
+  struct Arguments {
+    @Guide(description: "Latitude of the destination")
+    var latitude: Double
+    @Guide(description: "Longitude of the destination")
+    var longitude: Double
   }
-  var phase = PlanningPhase.weather
+
+  func call(arguments: Arguments) async throws -> [String] {
+    let categories: [MKPointOfInterestCategory] = [.nightlife, .beach, .nationalPark, .park, .hiking]
+    let request = MKLocalSearch.Request()
+    request.naturalLanguageQuery = "things to do"
+    request.pointOfInterestFilter = MKPointOfInterestFilter(including: categories)
+    request.region = MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: arguments.latitude, longitude: arguments.longitude),
+      latitudinalMeters: 16000,
+      longitudinalMeters: 16000
+    )
+    let response = try await MKLocalSearch(request: request).start()
+    return response.mapItems.compactMap { item in
+      guard let name = item.name else { return nil }
+      let category = item.pointOfInterestCategory?.rawValue ?? "unknown"
+      return "\(category) \(name)"
+    }
+  }
 }

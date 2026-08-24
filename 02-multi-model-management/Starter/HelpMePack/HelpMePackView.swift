@@ -106,15 +106,20 @@ struct HelpMePackView: View {
       }
     }
     Section {
-      Button {
-        createNewSession()
-        generatePackingList()
-      } label: {
-        Text("Generate Packing List")
-          .disabled(!isItineraryValid || isLoading)
+      if isLoading {
+        ProgressView("Generating Packing List")
           .frame(maxWidth: .infinity, alignment: .center)
+      } else {
+        Button {
+          createNewSession()
+          generatePackingList()
+        } label: {
+          Text("Generate Packing List")
+            .disabled(!isItineraryValid || isLoading)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .disabled(!isItineraryValid || isLoading || session.isResponding)
       }
-      .disabled(!isItineraryValid || isLoading || session.isResponding)
     }
   }
 

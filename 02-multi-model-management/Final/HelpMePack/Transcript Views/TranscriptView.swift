@@ -47,7 +47,7 @@ struct TranscriptView: View {
   var body: some View {
     Text("Session Transcript")
       .font(.title)
-    Text("Context Length \(session.usage.totalTokenCount) tokens")
+    Text("Session Tokens \(session.usage.totalTokenCount) tokens")
       .font(.subheadline)
     ScrollView {
       Divider()

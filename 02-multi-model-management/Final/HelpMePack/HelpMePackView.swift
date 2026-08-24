@@ -109,6 +109,7 @@ struct HelpMePackView: View {
     Section {
       if isLoading {
         ProgressView("Generating Packing List")
+          .frame(maxWidth: .infinity, alignment: .center)
       } else {
         Button {
           createNewSession()
@@ -173,6 +174,19 @@ struct HelpMePackView: View {
       2. Use the summary to decide what clothing and accessories would be
          needed for each destination.
       """
+    
+    let activityPrompt = """
+      Suggest a few things to do for this trip, matched to the best day for
+      each based on the weather already established.
+
+      Itinerary:
+      \(destinations)
+
+      Use the available tools to find nearby points of interest for each
+      destination. Only suggest places the tools actually return. Do not
+      look up or guess at weather conditions — use what's already been
+      established earlier in this conversation.
+      """
 
     Task {
       isLoading = true
@@ -193,6 +207,11 @@ struct HelpMePackView: View {
       // 4
       _ = await runPrompt(planningPrompt) { text in
         information.packingRecommendation = weatherText + "\n\n" + text
+      }
+      let weatherAndPlanningText = information.packingRecommendation
+      orchestrator.phase = .suggestions
+      _ = await runPrompt(activityPrompt) { text in
+        information.packingRecommendation = weatherAndPlanningText + "\n\n" + text
       }
     }
   }
