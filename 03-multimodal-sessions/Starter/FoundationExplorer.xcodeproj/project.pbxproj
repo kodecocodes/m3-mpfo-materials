@@ -327,6 +327,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"FoundationExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FoundationExplorer/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
@@ -349,6 +350,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"FoundationExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FoundationExplorer/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;

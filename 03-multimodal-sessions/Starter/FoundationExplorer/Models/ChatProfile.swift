@@ -75,7 +75,7 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
       return ContextOptions.ReasoningLevel.deep
     }
   }
-
+  
   var body: some DynamicProfile {
     switch modelOrcestrator.selectedModel {
     case .deviceModel:
