@@ -31,6 +31,8 @@
 /// THE SOFTWARE.
 
 import FoundationModels
+import Vision
+import FoundationModelsUtilities
 
 /// A single, manually-selected profile for the chat session — the model and
 /// instructions the user configured in Settings, not an automatically
@@ -75,7 +77,7 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
       return ContextOptions.ReasoningLevel.deep
     }
   }
-
+  
   var body: some DynamicProfile {
     switch modelOrcestrator.selectedModel {
     case .deviceModel:
@@ -83,8 +85,14 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
         Instructions {
           settings.instructions
         }
+        #if !targetEnvironment(simulator)
+        BarcodeReaderTool()
+        ImageAestheticsTool()
+        #endif
       }
       .model(SystemLanguageModel.default)
+      .summarizeHistory(entryThreshold: 10, model: SystemLanguageModel.default)
+      .droppingCompletedToolCalls()
       .temperature(temperature)
       .samplingMode(samplingMode)
       .onResponse {
@@ -95,6 +103,10 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
         Instructions {
           settings.instructions
         }
+        #if !targetEnvironment(simulator)
+        BarcodeReaderTool()
+        ImageAestheticsTool()
+        #endif
       }
       .model(
         SystemLanguageModel(guardrails: .permissiveContentTransformations)
@@ -110,6 +122,10 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
         Instructions {
           settings.instructions
         }
+        #if !targetEnvironment(simulator)
+        BarcodeReaderTool()
+        ImageAestheticsTool()
+        #endif
       }
       .model(PrivateCloudComputeLanguageModel())
       .reasoningLevel(reasoningLevel)
@@ -117,6 +133,24 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
       .samplingMode(samplingMode)
       .onResponse {
         print("Private Cloud Model Responded")
+      }
+    case .localApiModel:
+      Profile {
+        Instructions {
+          settings.instructions
+        }
+      }
+      .model(
+        ChatCompletionsLanguageModel(
+          name: "qwen3.8",
+          url: URL(string: "http://localhost:11434/")!
+        )
+      )
+      .reasoningLevel(reasoningLevel)
+      .temperature(temperature)
+      .samplingMode(samplingMode)
+      .onResponse {
+        print("Local Model Replied.")
       }
     }
   }

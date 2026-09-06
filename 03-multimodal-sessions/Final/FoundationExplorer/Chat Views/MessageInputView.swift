@@ -38,6 +38,7 @@ struct MessageInputView: View {
   @Binding var image: UIImage?
   @State var tokenCount: Int?
   @FocusState.Binding var isTextFieldFocused: Bool
+  var allowImage: Bool
   let sendAction: () async -> Void
   @State private var pickerItem: PhotosPickerItem?
 
@@ -46,10 +47,12 @@ struct MessageInputView: View {
       Divider()
 
       HStack(spacing: 12) {
-        PhotosPicker(selection: $pickerItem, matching: .images) {
-          Image(systemName: "photo.badge.plus")
-            .font(.title2)
-            .foregroundColor(image == nil ? .gray : .blue)
+        if allowImage {
+          PhotosPicker(selection: $pickerItem, matching: .images) {
+            Image(systemName: "photo.badge.plus")
+              .font(.title2)
+              .foregroundColor(image == nil ? .gray : .blue)
+          }
         }
         HStack(spacing: 8) {
           TextField("Message", text: $messageText, axis: .vertical)
@@ -108,7 +111,8 @@ struct MessageInputView: View {
         image = uiImage
       }
     }
-    if let image {
+    if let image,
+       allowImage {
       HStack {
         Image(uiImage: image)
           .resizable()
@@ -148,7 +152,8 @@ struct MessageInputView: View {
   MessageInputView(
     messageText: $messageText,
     image: $image,
-    isTextFieldFocused: $isTextFieldFocused
+    isTextFieldFocused: $isTextFieldFocused,
+    allowImage: true
   ) {
     print("Message \(messageText) sent.")
   }
@@ -162,7 +167,9 @@ struct MessageInputView: View {
   MessageInputView(
     messageText: $messageText,
     image: $image,
-    isTextFieldFocused: $isTextFieldFocused
+    
+    isTextFieldFocused: $isTextFieldFocused,
+    allowImage: true
   ) {
     print("Message \(messageText) sent.")
   }

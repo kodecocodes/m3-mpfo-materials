@@ -99,6 +99,8 @@ struct ChatView: View {
             Text(modelOption.rawValue).tag(modelOption)
           }
         }
+        ModelCapabilitiesView(capabilities: modelOrcestrator.capabilities)
+          .font(.caption)
         if messages.isEmpty {
           Text("Welcome to Foundation Explorer. Enter a message to begin interacting with the Foundation Model.")
             .font(.title2)
@@ -133,6 +135,7 @@ struct ChatView: View {
           messageText: $promptText,
           image: $messageImage,
           isTextFieldFocused: $isTextFieldFocused,
+          allowImage: modelOrcestrator.capabilities?.contains(.vision) ?? false,
           sendAction: sendPrompt
         )
         .disabled(session.isResponding)
@@ -177,10 +180,13 @@ extension ChatView {
     
     let cgImage = messageImage?.cgImage
     addMessage(promptText, type: .prompt, image: messageImage)
+    let modelSupportImages = modelOrcestrator.capabilities?.contains(.vision) ?? false
     let stream = session.streamResponse {
       promptText
-      if let cgImage {
+      if let cgImage,
+         modelSupportImages {
         Attachment(cgImage)
+          .label("prompt-image")
       }
     }
     
