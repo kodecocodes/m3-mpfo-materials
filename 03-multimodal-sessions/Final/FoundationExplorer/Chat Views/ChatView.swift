@@ -228,7 +228,12 @@ extension ChatView {
     }
   }
 
-  private func addMessage(_ message: String, type: MessageType, image: UIImage? = nil, animate: Bool = true) {
+  private func addMessage(
+    _ message: String,
+    type: MessageType,
+    image: UIImage? = nil,
+    animate: Bool = true
+  ) {
     let newMessage = Message(
       id: UUID(),
       text: message,

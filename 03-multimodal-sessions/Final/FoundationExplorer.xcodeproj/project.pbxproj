@@ -335,7 +335,7 @@
 				CODE_SIGN_ENTITLEMENTS = FoundationExplorer/FoundationExplorer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"FoundationExplorer/Preview Content\"";
-				DEVELOPMENT_TEAM = V89E766N8T;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FoundationExplorer/Info.plist;
@@ -358,7 +358,7 @@
 				CODE_SIGN_ENTITLEMENTS = FoundationExplorer/FoundationExplorer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"FoundationExplorer/Preview Content\"";
-				DEVELOPMENT_TEAM = V89E766N8T;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = FoundationExplorer/Info.plist;

@@ -42,6 +42,7 @@ struct ImageAestheticsTool: Tool {
   Calculates an image's aesthetic appeal score and determines whether it is a
   utility image. Use only for requests about aesthetics, visual appeal, or image quality.
   """
+
   @Generable
   struct Arguments {
     @Guide(description: "The identifier of the image to analyze.")
