@@ -38,7 +38,7 @@ import FoundationModelsUtilities
 /// instructions the user configured in Settings, not an automatically
 /// switching profile.
 struct ChatProfile: LanguageModelSession.DynamicProfile {
-  let modelOrcestrator: ModelOrchestrator
+  let modelOrchestrator: ModelOrchestrator
   let settings: PromptSettings
   
   private var temperature: Double? {
@@ -79,7 +79,7 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
   }
   
   var body: some DynamicProfile {
-    switch modelOrcestrator.selectedModel {
+    switch modelOrchestrator.selectedModel {
     case .deviceModel:
       Profile {
         Instructions {
@@ -91,7 +91,7 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
         #endif
       }
       .model(SystemLanguageModel.default)
-      .summarizeHistory(entryThreshold: 10, model: SystemLanguageModel.default)
+      .summarizeHistory(entryThreshold: 20, model: SystemLanguageModel.default)
       .droppingCompletedToolCalls()
       .temperature(temperature)
       .samplingMode(samplingMode)
@@ -148,7 +148,6 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
       )
       .reasoningLevel(reasoningLevel)
       .temperature(temperature)
-      .samplingMode(samplingMode)
       .onResponse {
         print("Local Model Replied.")
       }

@@ -54,7 +54,10 @@ struct ImageAestheticsTool: Tool {
     }
     
     let aestheticsScoresRequest = CalculateImageAestheticsScoresRequest()
-    let aesthetics = try await aestheticsScoresRequest.perform(on: attachment.cgImage)
+    let aesthetics = try await aestheticsScoresRequest.perform(
+      on: attachment.cgImage,
+      orientation: attachment.orientation
+    )
     return "The image has an aesthetic score of \(aesthetics.overallScore) and \(aesthetics.isUtility ? "is" : "is not") a utility image."
   }
 }

@@ -11,7 +11,7 @@
 		18D775C722AD944400AE281E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C622AD944400AE281E /* Assets.xcassets */; };
 		18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C922AD944400AE281E /* Preview Assets.xcassets */; };
 		18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18D775DA22AD963800AE281E /* LaunchScreen.storyboard */; };
-		A9F14F01304DED5E006C33E8 /* FoundationModelsUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = A9F14F00304DED5E006C33E8 /* FoundationModelsUtilities */; };
+		A9D27A8D304F0086004F7635 /* FoundationModelsUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = A9D27A8C304F0086004F7635 /* FoundationModelsUtilities */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +27,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A9B5F04C2E42A843006A49E1 /* Chat Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Chat Views"; sourceTree = "<group>"; };
 		A9B5F04D2E42A872006A49E1 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
+		A9D27AD330507082004F7635 /* Transcript Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Transcript Views"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9F14F01304DED5E006C33E8 /* FoundationModelsUtilities in Frameworks */,
+				A9D27A8D304F0086004F7635 /* FoundationModelsUtilities in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +67,7 @@
 				1839F4AF25190F2A00BB00F1 /* FoundationChatApp.swift */,
 				A9B5F04C2E42A843006A49E1 /* Chat Views */,
 				A9B5F04D2E42A872006A49E1 /* Models */,
+				A9D27AD330507082004F7635 /* Transcript Views */,
 				18D775C622AD944400AE281E /* Assets.xcassets */,
 				18D775DA22AD963800AE281E /* LaunchScreen.storyboard */,
 				18D775CE22AD944400AE281E /* Info.plist */,
@@ -101,10 +103,11 @@
 			fileSystemSynchronizedGroups = (
 				A9B5F04C2E42A843006A49E1 /* Chat Views */,
 				A9B5F04D2E42A872006A49E1 /* Models */,
+				A9D27AD330507082004F7635 /* Transcript Views */,
 			);
 			name = FoundationExplorer;
 			packageProductDependencies = (
-				A9F14F00304DED5E006C33E8 /* FoundationModelsUtilities */,
+				A9D27A8C304F0086004F7635 /* FoundationModelsUtilities */,
 			);
 			productName = MyRWTutorial;
 			productReference = 18D775BD22AD944300AE281E /* FoundationExplorer.app */;
@@ -136,7 +139,7 @@
 			);
 			mainGroup = 18D775B422AD944300AE281E;
 			packageReferences = (
-				A9F14EFF304DED5E006C33E8 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */,
+				A9D27A8B304F0086004F7635 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */,
 			);
 			productRefGroup = 18D775BE22AD944300AE281E /* Products */;
 			projectDirPath = "";
@@ -395,7 +398,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A9F14EFF304DED5E006C33E8 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */ = {
+		A9D27A8B304F0086004F7635 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/foundation-models-utilities.git";
 			requirement = {
@@ -406,9 +409,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A9F14F00304DED5E006C33E8 /* FoundationModelsUtilities */ = {
+		A9D27A8C304F0086004F7635 /* FoundationModelsUtilities */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A9F14EFF304DED5E006C33E8 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */;
+			package = A9D27A8B304F0086004F7635 /* XCRemoteSwiftPackageReference "foundation-models-utilities" */;
 			productName = FoundationModelsUtilities;
 		};
 /* End XCSwiftPackageProductDependency section */

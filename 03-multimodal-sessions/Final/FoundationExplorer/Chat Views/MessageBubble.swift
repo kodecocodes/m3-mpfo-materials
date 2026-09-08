@@ -49,9 +49,6 @@ struct MessageBubble: View {
 
     case .partialResponse:
       return Color.gray.mix(with: .white, by: 0.8)
-
-    case .summary:
-      return Color.mint
     }
   }
 
@@ -67,9 +64,6 @@ struct MessageBubble: View {
       return .white
 
     case .partialResponse:
-      return Color.primary
-
-    case .summary:
       return Color.primary
     }
   }

@@ -34,15 +34,15 @@ import SwiftUI
 import FoundationModels
 
 struct ChatView: View {
-  @State private var modelOrcestrator = ModelOrchestrator()
+  @State private var modelOrchestrator = ModelOrchestrator()
   @State private var promptText = ""
   @State private var messages: [Message] = []
   @FocusState private var isTextFieldFocused: Bool
   @State private var session: LanguageModelSession
   @State private var confirmClear: Bool = false
   @State private var promptSettings: PromptSettings
+  @State private var showTranscript = false
   @State private var showSettings = false
-  @State private var isCompactingContext = false
   @State private var messageImage: UIImage?
   
   init() {
@@ -53,11 +53,11 @@ struct ChatView: View {
       reasoning: .none
     )
     _promptSettings = State(initialValue: settings)
-    let modelOrcestrator = ModelOrchestrator()
-    _modelOrcestrator = State(initialValue: modelOrcestrator)
+    let modelOrchestrator = ModelOrchestrator()
+    _modelOrchestrator = State(initialValue: modelOrchestrator)
     _session = State(
       initialValue: LanguageModelSession(
-        profile: ChatProfile(modelOrcestrator: modelOrcestrator, settings: settings)
+        profile: ChatProfile(modelOrchestrator: modelOrchestrator, settings: settings)
       )
     )
   }
@@ -65,9 +65,8 @@ struct ChatView: View {
   @ToolbarContentBuilder private var appToolbar: some ToolbarContent {
     ToolbarSpacer(.flexible, placement: .bottomBar)
     ToolbarItem(placement: .bottomBar) {
-      Button("Compact", systemImage: "sparkles.rectangle.stack") {
-        Task {
-        }
+      Button("Show Transcript", systemImage: "sparkles.rectangle.stack") {
+        showTranscript = true
       }
     }
     ToolbarItem(placement: .bottomBar) {
@@ -79,6 +78,7 @@ struct ChatView: View {
       Button("Clear", systemImage: "xmark.circle.fill") {
         confirmClear = true
       }
+      .disabled(session.isResponding)
       .tint(.red)
       .confirmationDialog(
         "Are you sure you want to delete the chat history?",
@@ -94,12 +94,12 @@ struct ChatView: View {
   var body: some View {
     NavigationView {
       VStack(spacing: 0) {
-        Picker("Model", selection: $modelOrcestrator.selectedModel) {
+        Picker("Model", selection: $modelOrchestrator.selectedModel) {
           ForEach(ModelOrchestrator.AvailableModels.allCases, id: \.self) { modelOption in
             Text(modelOption.rawValue).tag(modelOption)
           }
         }
-        ModelCapabilitiesView(capabilities: modelOrcestrator.capabilities)
+        ModelCapabilitiesView(capabilities: modelOrchestrator.capabilities)
           .font(.caption)
         if messages.isEmpty {
           Text("Welcome to Foundation Explorer. Enter a message to begin interacting with the Foundation Model.")
@@ -135,23 +135,14 @@ struct ChatView: View {
           messageText: $promptText,
           image: $messageImage,
           isTextFieldFocused: $isTextFieldFocused,
-          allowImage: modelOrcestrator.capabilities?.contains(.vision) ?? false,
+          allowImage: modelOrchestrator.capabilities?.contains(.vision) ?? false,
           sendAction: sendPrompt
         )
         .disabled(session.isResponding)
         Text("Session Usage: \(session.usage.totalTokenCount) tokens.")
           .font(.footnote)
-        if modelOrcestrator.selectedModel == .privateCloudCompute {
+        if modelOrchestrator.selectedModel == .privateCloudCompute {
           QuotaUsageView(model: PrivateCloudComputeLanguageModel())
-        }
-      }
-      .overlay {
-        if isCompactingContext {
-          VStack(alignment: .center) {
-            CompactionIndicatorView()
-          }
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(.ultraThinMaterial)
         }
       }
       .navigationTitle("Foundation Explorer")
@@ -162,6 +153,9 @@ struct ChatView: View {
       .sheet(isPresented: $showSettings) {
         ConfigurationView(settings: $promptSettings)
       }
+      .sheet(isPresented: $showTranscript) {
+        TranscriptView(session: $session)
+      }
     }
   }
   
@@ -169,7 +163,7 @@ struct ChatView: View {
     messages = []
     
     session = LanguageModelSession(
-      profile: ChatProfile(modelOrcestrator: modelOrcestrator, settings: promptSettings)
+      profile: ChatProfile(modelOrchestrator: modelOrchestrator, settings: promptSettings)
     )
   }
 }
@@ -180,13 +174,13 @@ extension ChatView {
     
     let cgImage = messageImage?.cgImage
     addMessage(promptText, type: .prompt, image: messageImage)
-    let modelSupportImages = modelOrcestrator.capabilities?.contains(.vision) ?? false
+    let modelSupportImages = modelOrchestrator.capabilities?.contains(.vision) ?? false
     let stream = session.streamResponse {
       promptText
       if let cgImage,
          modelSupportImages {
-        Attachment(cgImage)
-          .label("prompt-image")
+        Attachment(cgImage, orientation: messageImage?.imageOrientation.cgOrientation)
+          .label("prompt-image-\(UUID().uuidString)")
       }
     }
     
@@ -208,6 +202,11 @@ extension ChatView {
       let lastIndex = messages.count - 1
       messages[lastIndex].type = .fullResponse
       messages[lastIndex].timestamp = Date.now
+    } catch LanguageModelError.contextSizeExceeded(let contextExceeded) {
+      let contextExceeded = """
+        Context Window contextExceeded: Your session was \(contextExceeded.tokenCount) of \(contextExceeded.contextSize)
+      """
+      addMessage(contextExceeded, type: .error)
     } catch LanguageModelError.guardrailViolation {
       let guardrailMessage = """
         Guardrail Violation: The system’s safety guardrails are triggered

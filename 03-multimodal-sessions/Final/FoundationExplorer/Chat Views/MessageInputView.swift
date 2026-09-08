@@ -36,7 +36,6 @@ import PhotosUI
 struct MessageInputView: View {
   @Binding var messageText: String
   @Binding var image: UIImage?
-  @State var tokenCount: Int?
   @FocusState.Binding var isTextFieldFocused: Bool
   var allowImage: Bool
   let sendAction: () async -> Void
@@ -53,6 +52,11 @@ struct MessageInputView: View {
               .font(.title2)
               .foregroundColor(image == nil ? .gray : .blue)
           }
+          .onChange(of: image) {
+            if image == nil {
+              pickerItem = nil
+            }
+          }
         }
         HStack(spacing: 8) {
           TextField("Message", text: $messageText, axis: .vertical)
@@ -60,7 +64,6 @@ struct MessageInputView: View {
             .lineLimit(1...4)
             .onSubmit {
               Task {
-                tokenCount = nil
                 await sendAction()
               }
             }
@@ -68,7 +71,6 @@ struct MessageInputView: View {
           if !messageText.isEmpty {
             Button {
               Task {
-                tokenCount = nil
                 await sendAction()
               }
             } label: {
@@ -89,16 +91,6 @@ struct MessageInputView: View {
       .padding(.horizontal, 16)
       .padding(.top, 12)
       .background(Color(.systemBackground))
-      if let tokenCount = tokenCount {
-        HStack {
-          Spacer()
-          Text(tokenCount, format: .number)
-            .padding(.trailing, 2)
-          Text(" tokens")
-        }
-        .padding(.trailing)
-        .font(.footnote)
-      }
     }
     .animation(.easeInOut(duration: 0.2), value: messageText.isEmpty)
     .onChange(of: pickerItem) {
@@ -135,11 +127,6 @@ struct MessageInputView: View {
       .padding(.top, 12)
       .transition(.scale.combined(with: .opacity))
     }
-  }
-  
-  func clearInput() {
-    messageText = ""
-    image = nil
   }
 }
 

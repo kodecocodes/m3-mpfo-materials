@@ -31,53 +31,63 @@
 /// THE SOFTWARE.
 
 import SwiftUI
+import FoundationModels
 
-struct CompactionIndicatorView: View {
-  @Environment(\.accessibilityReduceMotion)
-  private var reduceMotion
+struct TranscriptView: View {
+  @Binding var session: LanguageModelSession
+
+  let instructionsColor = Color.green.mix(with: .white, by: 0.5)
+  let promptColor = Color.blue.mix(with: .white, by: 0.5)
+  let responseColor = Color.gray.mix(with: .white, by: 0.5)
+  let toolCallColor = Color.yellow.mix(with: .white, by: 0.5)
+  let toolOutputColor = Color.orange.mix(with: .white, by: 0.5)
+  let defaultColor = Color.gray.mix(with: .white, by: 0.2)
 
   var body: some View {
-    HStack {
-      ZStack {
-        Circle()
-          .stroke(Color.secondary.opacity(0.25), lineWidth: 2)
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: reduceMotion)) { context in
-          let phase = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 1.0)
-          Circle()
-            .trim(from: 0.12, to: 0.62)
-            .stroke(
-              Color.blue,
-              style: StrokeStyle(lineWidth: 2, lineCap: .round)
-            )
-            .frame(width: 22, height: 22)
-            .rotationEffect(.degrees(phase * 360.0))
+    Text("Session Transcript")
+      .font(.title)
+    Text("Session Tokens \(session.usage.totalTokenCount) tokens")
+      .font(.subheadline)
+    ScrollView {
+      Divider()
+      ForEach(session.transcript) { entry in
+        switch entry {
+        case .instructions(let instructions):
+          TranscriptEntryView(text: instructions.description, color: instructionsColor)
+        case .prompt(let prompt):
+          TranscriptEntryView(
+            text: prompt.description,
+            color: promptColor
+          )
+        case .response(let response):
+          TranscriptEntryView(
+            text: response.description,
+            color: responseColor
+          )
+        case .toolCalls(let toolCall):
+          TranscriptEntryView(
+            text: toolCall.description,
+            color: toolCallColor
+          )
+        case .toolOutput(let toolOutput):
+          TranscriptEntryView(
+            text: toolOutput.description,
+            color: toolOutputColor
+          )
+        default:
+          TranscriptEntryView(
+            text: entry.description,
+            color: defaultColor
+          )
         }
       }
-      .frame(width: 22, height: 22)
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text("Compacting context…")
-          .font(.subheadline.weight(.semibold))
-
-        Text("Summarizing older messages")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
-    .background(
-      RoundedRectangle(cornerRadius: 20)
-        .fill(Color(.systemGray6))
-    )
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("Compacting conversation context")
-    .accessibilityHint("The app is summarizing earlier messages to fit the context window")
-    .transition(.opacity)
   }
 }
 
 #Preview {
-  CompactionIndicatorView()
-    .padding()
+  let session = LanguageModelSession(instructions: "Sample instruction")
+  TranscriptView(
+    session: .constant(session)
+  )
 }

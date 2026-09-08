@@ -34,7 +34,6 @@ import SwiftUI
 
 struct MessageInputView: View {
   @Binding var messageText: String
-  @State var tokenCount: Int?
   @FocusState.Binding var isTextFieldFocused: Bool
   let sendAction: () async -> Void
 
@@ -49,7 +48,6 @@ struct MessageInputView: View {
             .lineLimit(1...4)
             .onSubmit {
               Task {
-                tokenCount = nil
                 await sendAction()
               }
             }
@@ -57,7 +55,6 @@ struct MessageInputView: View {
           if !messageText.isEmpty {
             Button {
               Task {
-                tokenCount = nil
                 await sendAction()
               }
             } label: {
@@ -78,16 +75,6 @@ struct MessageInputView: View {
       .padding(.horizontal, 16)
       .padding(.top, 12)
       .background(Color(.systemBackground))
-      if let tokenCount = tokenCount {
-        HStack {
-          Spacer()
-          Text(tokenCount, format: .number)
-            .padding(.trailing, 2)
-          Text(" tokens")
-        }
-        .padding(.trailing)
-        .font(.footnote)
-      }
     }
     .animation(.easeInOut(duration: 0.2), value: messageText.isEmpty)
   }

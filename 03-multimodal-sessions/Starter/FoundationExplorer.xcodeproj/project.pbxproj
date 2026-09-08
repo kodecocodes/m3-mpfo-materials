@@ -26,6 +26,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A9B5F04C2E42A843006A49E1 /* Chat Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Chat Views"; sourceTree = "<group>"; };
 		A9B5F04D2E42A872006A49E1 /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Models; sourceTree = "<group>"; };
+		A9D27ACE30506F61004F7635 /* Transcript Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Transcript Views"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +65,7 @@
 				1839F4AF25190F2A00BB00F1 /* FoundationChatApp.swift */,
 				A9B5F04C2E42A843006A49E1 /* Chat Views */,
 				A9B5F04D2E42A872006A49E1 /* Models */,
+				A9D27ACE30506F61004F7635 /* Transcript Views */,
 				18D775C622AD944400AE281E /* Assets.xcassets */,
 				18D775DA22AD963800AE281E /* LaunchScreen.storyboard */,
 				18D775CE22AD944400AE281E /* Info.plist */,
@@ -99,6 +101,7 @@
 			fileSystemSynchronizedGroups = (
 				A9B5F04C2E42A843006A49E1 /* Chat Views */,
 				A9B5F04D2E42A872006A49E1 /* Models */,
+				A9D27ACE30506F61004F7635 /* Transcript Views */,
 			);
 			name = FoundationExplorer;
 			productName = MyRWTutorial;

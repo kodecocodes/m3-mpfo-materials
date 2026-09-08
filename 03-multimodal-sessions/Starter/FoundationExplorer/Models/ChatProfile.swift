@@ -36,7 +36,7 @@ import FoundationModels
 /// instructions the user configured in Settings, not an automatically
 /// switching profile.
 struct ChatProfile: LanguageModelSession.DynamicProfile {
-  let modelOrcestrator: ModelOrchestrator
+  let modelOrchestrator: ModelOrchestrator
   let settings: PromptSettings
   
   private var temperature: Double? {
@@ -77,7 +77,7 @@ struct ChatProfile: LanguageModelSession.DynamicProfile {
   }
   
   var body: some DynamicProfile {
-    switch modelOrcestrator.selectedModel {
+    switch modelOrchestrator.selectedModel {
     case .deviceModel:
       Profile {
         Instructions {

@@ -37,7 +37,6 @@ enum MessageType {
   case partialResponse
   case fullResponse
   case error
-  case summary
 }
 
 struct Message: Identifiable, Equatable {

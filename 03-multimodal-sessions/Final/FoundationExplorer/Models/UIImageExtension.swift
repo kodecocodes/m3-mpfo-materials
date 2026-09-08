@@ -30,28 +30,21 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 /// THE SOFTWARE.
 
+import Foundation
 import SwiftUI
-import FoundationModels
 
-struct ModelUnavailableView: View {
-  var reason: SystemLanguageModel.Availability.UnavailableReason
-
-  var body: some View {
-    Image(systemName: "apple.intelligence")
-      .font(.largeTitle)
-    switch reason {
-    case .deviceNotEligible:
-      Text("Apple Intelligence is not available on this device.")
-    case .appleIntelligenceNotEnabled:
-      Text("Apple Intelligence is available, but not enabled on this device.")
-    case .modelNotReady:
-      Text("The model isn't ready. This is usually because it is still downloading.")
-    @unknown default:
-      Text("An unknown error prevents Apple Intelligence from working.")
+extension UIImage.Orientation {
+  var cgOrientation: CGImagePropertyOrientation? {
+    switch self {
+    case .up: .up
+    case .down: .down
+    case .left: .left
+    case .right: .right
+    case .upMirrored: .upMirrored
+    case .downMirrored: .downMirrored
+    case .leftMirrored: .leftMirrored
+    case .rightMirrored: .rightMirrored
+    @unknown default: .up
     }
   }
-}
-
-#Preview {
-  ModelUnavailableView(reason: .appleIntelligenceNotEnabled)
 }

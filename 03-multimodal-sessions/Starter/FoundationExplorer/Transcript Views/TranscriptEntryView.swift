@@ -1,15 +1,15 @@
-/// Copyright (c) 2025 Kodeco Inc.
-/// 
+/// Copyright (c) 2026 Kodeco Inc.
+///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
 /// in the Software without restriction, including without limitation the rights
 /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 /// copies of the Software, and to permit persons to whom the Software is
 /// furnished to do so, subject to the following conditions:
-/// 
+///
 /// The above copyright notice and this permission notice shall be included in
 /// all copies or substantial portions of the Software.
-/// 
+///
 /// Notwithstanding the foregoing, you may not use, copy, modify, merge, publish,
 /// distribute, sublicense, create a derivative work, and/or sell copies of the
 /// Software in any work that is designed, intended, or marketed for pedagogical or
@@ -17,7 +17,7 @@
 /// or information technology.  Permission for such use, copying, modification,
 /// merger, publication, distribution, sublicensing, creation of derivative works,
 /// or sale is expressly withheld.
-/// 
+///
 /// This project and source code may use libraries or frameworks that are
 /// released under various Open-Source licenses. Use of those libraries and
 /// frameworks are governed by their own individual licenses.
@@ -32,27 +32,26 @@
 
 import SwiftUI
 
-enum MessageType {
-  case prompt
-  case partialResponse
-  case fullResponse
-  case error
+struct TranscriptEntryView: View {
+  var text: String
+  var color: Color
+
+  var body: some View {
+    Text(text)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 10)
+      .background(
+        RoundedRectangle(cornerRadius: 20)
+          .fill(color)
+          .padding(.horizontal, 4)
+      )
+  }
 }
 
-struct Message: Identifiable, Equatable {
-  let id: UUID
-  var text: String
-  var type: MessageType
-  var timestamp: Date
-  var tokens: Int?
-  var image: UIImage?
-
-  init(id: UUID, text: String, type: MessageType, timestamp: Date, tokens: Int? = nil, image: UIImage? = nil) {
-    self.id = id
-    self.text = text
-    self.type = type
-    self.timestamp = timestamp
-    self.tokens = tokens
-    self.image = image
-  }
+#Preview {
+  TranscriptEntryView(
+    text: "Sample Text",
+    color: Color.blue.mix(with: .white, by: 0.5)
+  )
 }
